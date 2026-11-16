@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#04102E">
+  <title>별오름 체크인</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    :root {
+      --night: #04102E; --ink: #EEF1FA; --muted: #9AA6CC; --dim: #6F7BA3;
+      --gold: #F7C164; --gold-2: #FFD98C; --gold-ink: #2B1C02;
+      --glass-line: rgba(255,255,255,.16); --danger: #FF8C82; --ok: #9FE1CB;
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { overflow-x: hidden; }
+    body {
+      margin: 0; background: var(--night); color: var(--ink);
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    svg.i { width: 20px; height: 20px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+    #sky { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    #sky i { position: absolute; border-radius: 50%; background: #fff; animation: twinkle var(--d) ease-in-out infinite; animation-delay: var(--t); }
+    @keyframes twinkle { 0%,100% { opacity: .2; } 50% { opacity: 1; } }
+
+    .page { position: relative; z-index: 1; max-width: 460px; margin: 0 auto; }
+    .hero { position: relative; overflow: hidden; }
+    .hero img.bg { display: block; width: 100%; height: auto; }
+    .hero::after { content: ''; position: absolute; inset: 0; pointer-events: none;
+      background: linear-gradient(180deg, rgba(4,16,46,0) 40%, rgba(4,16,46,.55) 70%, var(--night) 100%); }
+    .peak-glow { position: absolute; left: 50.5%; top: 25.9%; width: 34%; aspect-ratio: 1; border-radius: 50%; pointer-events: none;
+      background: radial-gradient(circle, rgba(255,217,140,.5), rgba(255,217,140,0) 62%); mix-blend-mode: screen;
+      animation: pulse 3.5s ease-in-out infinite; }
+    @keyframes pulse { 0%,100% { opacity: .45; transform: translate(-50%,-50%) scale(.85); } 50% { opacity: 1; transform: translate(-50%,-50%) scale(1.1); } }
+    @media (min-width: 461px) { .hero img.bg { -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); } }
+    .titles { position: absolute; left: 0; right: 0; bottom: 30px; text-align: center; z-index: 2; }
+    .logo { width: 56px; height: 56px; border-radius: 50%; margin: 0 auto 8px; overflow: hidden; border: 2px solid rgba(247,193,100,.6); box-shadow: 0 0 24px rgba(247,193,100,.35); }
+    .logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .eyebrow { font-size: 12px; letter-spacing: 9px; padding-left: 9px; color: #C9D1EC; text-shadow: 0 1px 8px rgba(0,0,0,.8); }
+    h1 { font-size: 32px; font-weight: 800; margin: 6px 0 8px; letter-spacing: -1px; text-shadow: 0 2px 18px rgba(0,0,0,.7); }
+    .when { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; color: var(--gold); text-shadow: 0 1px 8px rgba(0,0,0,.8); }
+    .when svg.i { width: 18px; height: 18px; }
+
+    .wrap { position: relative; z-index: 2; padding: 0 16px 48px; margin-top: -14px; }
+    .card {
+      position: relative; border-radius: 26px; padding: 20px 18px; margin-bottom: 16px;
+      background: linear-gradient(180deg, rgba(52,66,118,.45) 0%, rgba(16,26,58,.55) 100%);
+      border: 1px solid var(--glass-line);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 20px 40px rgba(0,0,0,.35);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    }
+    .center { text-align: center; }
+    .lead { font-size: 15px; color: #C3CBE6; margin: 0 0 14px; }
+
+    .search { position: relative; }
+    .search svg.i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+    .search input {
+      width: 100%; font: inherit; font-size: 17px; padding: 14px 16px 14px 44px; border-radius: 16px;
+      border: 1px solid var(--glass-line); background: rgba(8,14,36,.55); color: var(--ink); outline: none;
+    }
+    .search input:focus { border-color: var(--gold); }
+    .list { margin-top: 10px; }
+    .name {
+      width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 15px 6px;
+      background: none; border: 0; border-bottom: 1px solid rgba(255,255,255,.07); color: var(--ink);
+      font: inherit; font-size: 17px; text-align: left; cursor: pointer;
+    }
+    .name:active { background: rgba(247,193,100,.08); }
+    .name svg.i { color: var(--dim); }
+    .empty { font-size: 14px; color: var(--dim); padding: 14px 6px; }
+
+    .btn {
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 17px 20px; margin-top: 14px;
+      border-radius: 22px; font: inherit; font-size: 18px; font-weight: 700; cursor: pointer; border: 1px solid transparent;
+      color: var(--gold-ink); background: linear-gradient(180deg, var(--gold-2) 0%, var(--gold) 100%);
+      box-shadow: 0 8px 24px rgba(247,193,100,.3), inset 0 1px 0 rgba(255,255,255,.5);
+      transition: transform .1s ease;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn:disabled { opacity: .6; }
+    .linkbtn { display: inline-flex; align-items: center; gap: 6px; margin-top: 14px; background: none; border: 0; color: var(--muted); font: inherit; font-size: 14px; cursor: pointer; }
+
+    .who { font-size: 13px; color: var(--muted); }
+    .big-name { font-size: 30px; font-weight: 800; margin: 6px 0 2px; letter-spacing: -.5px; }
+
+    .seal {
+      width: 84px; height: 84px; border-radius: 50%; margin: 4px auto 14px; display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(circle, rgba(255,217,140,.28), rgba(247,193,100,.08)); border: 2px solid rgba(255,217,140,.8);
+      box-shadow: 0 0 36px rgba(247,193,100,.45); color: var(--gold-2); animation: pop .5s cubic-bezier(.2,1.4,.4,1);
+    }
+    .seal svg.i { width: 42px; height: 42px; stroke-width: 2.2; }
+    .seal.again { border-color: rgba(154,166,204,.8); color: #C9D1EC; box-shadow: 0 0 30px rgba(154,166,204,.3); background: rgba(154,166,204,.12); }
+    @keyframes pop { 0% { transform: scale(.4); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    .done-title { font-size: 22px; font-weight: 800; margin: 0; }
+    .done-sub { font-size: 14px; color: var(--muted); margin-top: 6px; }
+
+    .month { margin-top: 20px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.08); }
+    .month .label { font-size: 13px; color: var(--muted); }
+    .month .num { font-size: 15px; color: #C3CBE6; margin-top: 4px; }
+    .month .num b { font-size: 34px; font-weight: 800; color: #fff; margin: 0 4px; }
+    .dots { display: flex; justify-content: center; gap: 10px; margin: 14px 0 12px; }
+    .dots span { width: 18px; height: 18px; border-radius: 50%; border: 2px solid rgba(255,255,255,.25); }
+    .dots span.on { background: var(--gold); border-color: var(--gold-2); box-shadow: 0 0 12px rgba(247,193,100,.6); }
+    .state { display: inline-block; padding: 7px 16px; border-radius: 999px; font-size: 14px; font-weight: 600; }
+    .s-done { background: rgba(159,225,203,.14); color: var(--ok); }
+    .s-short { background: rgba(247,193,100,.14); color: var(--gold); }
+    .s-ex { background: rgba(154,166,204,.16); color: #C9D1EC; }
+
+    .msg { font-size: 14px; color: var(--danger); margin-top: 12px; min-height: 1em; text-align: center; }
+    .warn-ic { width: 64px; height: 64px; border-radius: 50%; margin: 4px auto 12px; display: flex; align-items: center; justify-content: center;
+      background: rgba(255,140,130,.12); color: var(--danger); }
+    .warn-ic svg.i { width: 32px; height: 32px; }
+    .spinner { width: 28px; height: 28px; margin: 10px auto; border-radius: 50%; border: 3px solid rgba(255,255,255,.15); border-top-color: var(--gold); animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+<div id="sky"></div>
+
+<div class="page">
+  <div class="hero">
+    <img class="bg" alt="" src="hero.webp">
+    <div class="peak-glow"></div>
+    <div class="titles">
+      <div class="logo hidden" id="logo"></div>
+      <div class="eyebrow">BYEOLOREUM</div>
+      <h1>별오름 체크인</h1>
+      <div class="when hidden" id="when">
+        <svg class="i" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4M8 3v4M4 11h16"/></svg>
+        <span id="whenText"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div id="vLoading" class="card center">
+      <div class="spinner"></div>
+      <p class="lead" style="margin:8px 0 0">QR을 확인하고 있어요</p>
+    </div>
+
+    <div id="vInvalid" class="card center hidden">
+      <div class="warn-ic"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg></div>
+      <div class="done-title">사용할 수 없는 QR이에요</div>
+      <div class="done-sub">지난 QR이거나 새로 발급된 QR이 있어요.<br>운영진에게 오늘 QR을 다시 받아 찍어 주세요.</div>
+    </div>
+
+    <div id="vPick" class="card hidden">
+      <p class="lead">본인 이름을 찾아 눌러 주세요</p>
+      <div class="search">
+        <svg class="i" viewBox="0 0 24 24"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/></svg>
+        <input id="q" type="search" placeholder="이름 검색" autocomplete="off">
+      </div>
+      <div class="list" id="list"></div>
+    </div>
+
+    <div id="vConfirm" class="card center hidden">
+      <div class="who">이 이름으로 체크인할게요</div>
+      <div class="big-name" id="cName"></div>
+      <button class="btn" id="btnCheckin">
+        <svg class="i" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg>
+        체크인
+      </button>
+      <button class="linkbtn" id="btnOther">
+        <svg class="i" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>
+        다른 이름 선택
+      </button>
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <div id="vDone" class="card center hidden">
+      <div class="seal" id="seal"><svg class="i" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></div>
+      <div class="done-title" id="dTitle"></div>
+      <div class="done-sub" id="dSub"></div>
+      <div class="month">
+        <div class="label" id="mLabel"></div>
+        <div class="dots" id="dots"></div>
+        <div class="num"><b id="mCount">0</b>회 출석</div>
+        <div style="margin-top:12px"><span class="state" id="mState"></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+<script>
+  const CODE = (new URLSearchParams(location.search).get('code') || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+  const $ = (id) => document.getElementById(id);
+  const ME_KEY = 'byeoloreum_me';
+  const DEV_KEY = 'byeoloreum_device';
+  let names = [], picked = '';
+
+  App.makeSky($('sky'), 50, 30);
+  const esc = App.esc, clean = App.clean, call = App.api, deviceId = App.deviceId;
+  function store(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} }
+  function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function show(id) {
+    ['vLoading', 'vInvalid', 'vPick', 'vConfirm', 'vDone'].forEach((v) => $(v).classList.toggle('hidden', v !== id));
+  }
+
+  function renderList() {
+    const q = $('q').value.trim();
+    const hits = q ? names.filter((n) => n.includes(q)) : names;
+    $('list').innerHTML = hits.length
+      ? hits.map((n) => `<button class="name" data-n="${esc(n)}"><span>${esc(n)}</span><svg class="i" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>`).join('')
+      : '<div class="empty">찾는 이름이 없어요. 명단에 없다면 운영진에게 알려 주세요.</div>';
+  }
+
+  function confirmName(n) {
+    picked = n;
+    $('cName').textContent = n;
+    $('msg').textContent = '';
+    show('vConfirm');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function checkin() {
+    $('btnCheckin').disabled = true;
+    $('msg').textContent = '';
+    try {
+      const r = await call('apiCheckin', CODE, picked, deviceId());
+      store(ME_KEY, picked);
+      renderDone(r);
+    } catch (e) {
+      $('msg').textContent = clean(e);
+    }
+    $('btnCheckin').disabled = false;
+  }
+
+  function renderDone(r) {
+    $('seal').classList.toggle('again', r.already);
+    $('dTitle').textContent = r.already ? '오늘 이미 체크인했어요' : '체크인 완료';
+    $('dSub').textContent = `${r.name} · ${r.dateLabel}`;
+    $('mLabel').textContent = `${r.monthLabel} 출석 현황 · 필참 ${r.required}회`;
+    const total = Math.max(r.required, r.count);
+    $('dots').innerHTML = Array.from({ length: Math.min(total, 10) }, (_, i) =>
+      `<span class="${i < r.count ? 'on' : ''}"></span>`).join('');
+    $('mCount').textContent = r.count;
+    const st = $('mState');
+    if (r.exempt) { st.className = 'state s-ex'; st.textContent = '이번 달은 필참 면제예요'; }
+    else if (r.count >= r.required) { st.className = 'state s-done'; st.textContent = '이번 달 필참을 채웠어요'; }
+    else { st.className = 'state s-short'; st.textContent = `필참까지 ${r.required - r.count}회 남았어요`; }
+    show('vDone');
+  }
+
+  async function init() {
+    App.loadLogo($('logo'));
+    if (!CODE) { show('vInvalid'); return; }
+
+    // 기억된 이름이 있으면 서버 확인을 기다리지 않고 바로 체크인 버튼을 보여준다
+    const me = load(ME_KEY);
+    if (me) confirmName(me);
+
+    try {
+      const r = await call('apiCheckinInit', CODE);
+      if (!r.valid) { show('vInvalid'); return; }
+      names = r.names;
+      $('whenText').textContent = r.dateLabel;
+      $('when').classList.remove('hidden');
+      renderList();
+      if (me && names.includes(me)) {
+        if (!picked) confirmName(me);
+      } else if ($('vDone').classList.contains('hidden')) {
+        show('vPick');
+      }
+    } catch (e) {
+      if (!me) show('vInvalid');
+    }
+  }
+
+
+  $('q').addEventListener('input', renderList);
+  $('list').addEventListener('click', (e) => {
+    const b = e.target.closest('.name');
+    if (b) confirmName(b.dataset.n);
+  });
+  $('btnCheckin').addEventListener('click', checkin);
+  $('btnOther').addEventListener('click', () => { $('q').value = ''; renderList(); show('vPick'); });
+  init();
+</script>
+</body>
+</html>
