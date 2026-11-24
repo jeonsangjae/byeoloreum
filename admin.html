@@ -170,6 +170,7 @@
     .pill { font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
     .p-short { background: rgba(255,140,130,.14); color: var(--danger); }
     .p-done { background: rgba(159,225,203,.14); color: #9FE1CB; }
+    .p-wait { background: rgba(247,193,100,.14); color: var(--gold); }
     .p-ex { background: rgba(154,166,204,.16); color: #C9D1EC; }
     .chips { display: flex; flex-wrap: wrap; gap: 6px; }
     .chip { font-size: 14px; padding: 6px 11px; border-radius: 999px; background: rgba(8,14,36,.55); border: 1px solid var(--glass-line); }
@@ -254,6 +255,10 @@
             <div class="stat s-ex"><b id="nEx">-</b><span>면제</span></div>
           </div>
           <div id="sWarn"></div>
+          <div class="sec">
+            <h3><span>신입 첫 출석 <small id="sNewbieRule"></small></span><span>상태</span></h3>
+            <div id="sNewbie"></div>
+          </div>
           <div class="sec">
             <h3><span>오늘 체크인</span><span id="sTodayN"></span></h3>
             <div class="chips" id="sToday"></div>
@@ -554,6 +559,18 @@
       $('sDone').innerHTML = s.done.length
         ? s.done.map((p) => row(p, `${p.count}회`, 'p-done')).join('')
         : '<div class="none">아직 충족한 사람이 없어요</div>';
+      $('sNewbieRule').textContent = `가입 후 ${s.newbieDays}일 이내`;
+      const nb = s.newbies || [];
+      $('sNewbie').innerHTML = nb.length
+        ? nb.map((p) => {
+            let pill, cls;
+            if (p.state === 'over') { pill = `기한 지남 · ${p.deadline}`; cls = 'p-short'; }
+            else if (p.state === 'wait') { pill = p.left === 0 ? '오늘 마감' : `D-${p.left} · ${p.deadline}까지`; cls = 'p-wait'; }
+            else if (p.state === 'late') { pill = `${p.first} 늦게 출석`; cls = 'p-ex'; }
+            else { pill = `${p.first} 출석 완료`; cls = 'p-done'; }
+            return `<div class="row"><span>${esc(p.name)}<small>가입 ${esc(p.joined)}</small></span><span class="pill ${cls}">${pill}</span></div>`;
+          }).join('')
+        : '<div class="none">최근 가입한 신입이 없어요</div>';
       $('sWarn').innerHTML = s.warnings.length
         ? `<div class="warnbox"><svg class="i" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg><span>오늘 같은 폰에서 여러 명이 체크인했어요: ${s.warnings.map((w) => esc(w.join(', '))).join(' / ')}</span></div>`
         : '';
